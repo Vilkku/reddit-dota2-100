@@ -1,0 +1,17 @@
+{
+  "name": "reddit-dota2-100",
+  "version": "1.0.0",
+  "description": "0.1.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "snoocore": "^3.3.1",
+    "sqlite3": "^3.1.1",
+    "twit": "^2.2.2",
+    "twitter-text": "^1.13.3"
+  }
+}
