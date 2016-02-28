@@ -51,7 +51,7 @@ reddit('r/dota2/top?t=day').listing({limit: 100}).then(function (slice) {
         if (tweetLength > 140) {
             var lengthOver = tweetLength - 140;
 
-            // Remove characters that make the tweet too long from the title and remove potential space from the end
+            // Remove characters that make the tweet too long from the title and remove potential whitespace from the end
             var title = row.title.slice(0, -(lengthOver + 3)).trim();
             // Remove the last word from the title, it might be cut off in the middle because of the previous operation
             title = title.substring(0, title.lastIndexOf(' '));
@@ -63,6 +63,8 @@ reddit('r/dota2/top?t=day').listing({limit: 100}).then(function (slice) {
         }
 
         twitter.post('statuses/update', {status: tweet}, function (err, data, response) {
+            var now = new Date();
+            console.log('[' + now.toUTCString() + '] ' + tweet);
             console.log(data);
         });
     });

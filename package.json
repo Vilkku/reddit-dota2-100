@@ -1,13 +1,14 @@
 {
   "name": "reddit-dota2-100",
-  "version": "1.0.0",
-  "description": "0.1.0",
+  "version": "0.1.0",
+  "description": "Post /r/Dota2 top 100 posts to Twitter",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "MIT",
+  "repository": "Vilkku/reddit-dota2-100",
   "dependencies": {
     "snoocore": "^3.3.1",
     "sqlite3": "^3.1.1",
