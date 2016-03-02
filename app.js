@@ -23,7 +23,7 @@ var twitter = new Twit({
     consumer_secret: config.twitter.consumer_secret,
     access_token: config.twitter.access_token,
     access_token_secret: config.twitter.access_token_secret
-})
+});
 
 db.run('CREATE TABLE IF NOT EXISTS posts (' +
     'id TEXT PRIMARY KEY NOT NULL,' +
@@ -33,7 +33,7 @@ db.run('CREATE TABLE IF NOT EXISTS posts (' +
     'tweeted TIMESTAMP)'
 );
 
-reddit('r/dota2/top?t=day').listing({limit: 100}).then(function (slice) {
+reddit('r/dota2/top?t=day').listing({limit: config.reddit.limit}).then(function (slice) {
     slice.children.forEach(function (submission) {
         db.run('INSERT OR IGNORE INTO posts (id, title, permalink) VALUES ($id, $title, $permalink)', {
             $id: submission.data.id,
@@ -43,6 +43,11 @@ reddit('r/dota2/top?t=day').listing({limit: 100}).then(function (slice) {
     });
 
     db.each('SELECT * FROM posts WHERE tweeted IS NULL', function (err, row) {
+        if (err) {
+            console.log(err);
+            return false;
+        }
+
         db.run('UPDATE posts SET tweeted = CURRENT_TIMESTAMP WHERE id = $id', {$id: row.id});
 
         var tweet = row.title + ' https://www.reddit.com' + row.permalink;
@@ -65,7 +70,10 @@ reddit('r/dota2/top?t=day').listing({limit: 100}).then(function (slice) {
         twitter.post('statuses/update', {status: tweet}, function (err, data, response) {
             var now = new Date();
             console.log('[' + now.toUTCString() + '] ' + tweet);
-            console.log(data);
+            if (err) {
+                console.log(err);
+                return false;
+            }
         });
     });
 });

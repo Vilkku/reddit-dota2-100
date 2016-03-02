@@ -4,7 +4,8 @@
         "key": "",
         "secret": "",
         "username": "",
-        "password": ""
+        "password": "",
+        "limit": 100
     },
     "twitter": {
         "consumer_key": "",
