@@ -77,5 +77,3 @@ reddit('r/dota2/top?t=day').listing({limit: config.reddit.limit}).then(function 
         });
     });
 });
-
-
