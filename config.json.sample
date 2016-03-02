@@ -1,10 +1,6 @@
 {
     "reddit": {
         "user_agent": "",
-        "key": "",
-        "secret": "",
-        "username": "",
-        "password": "",
         "limit": 100
     },
     "twitter": {

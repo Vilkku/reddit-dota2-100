@@ -1,45 +1,60 @@
 var config = require('./config.json');
-var Snoocore = require('snoocore');
-var Sqlite3 = require('sqlite3');
+var request = require('request');
+var Sqlite3 = require('sqlite3').verbose();
 var Twit = require('twit');
 var twitterText = require('twitter-text');
 
-var reddit = new Snoocore({
-    userAgent: config.reddit.user_agent,
-    oauth: {
-        type: 'script',
-        key: config.reddit.key,
-        secret: config.reddit.secret,
-        username: config.reddit.username,
-        password: config.reddit.password,
-        scope: ['read']
-    }
-});
+var db = new Sqlite3.Database('db.sqlite', initDb);
 
-var db = new Sqlite3.Database('db.sqlite');
+function initDb () {
+    db.run(
+        'CREATE TABLE IF NOT EXISTS posts (' +
+        'id TEXT PRIMARY KEY NOT NULL,' +
+        'title TEXT NOT NULL,' +
+        'permalink TEXT NOT NULL,' +
+        'added TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,' +
+        'tweeted TIMESTAMP)',
+        getRedditPosts
+    );
+}
 
-var twitter = new Twit({
-    consumer_key: config.twitter.consumer_key,
-    consumer_secret: config.twitter.consumer_secret,
-    access_token: config.twitter.access_token,
-    access_token_secret: config.twitter.access_token_secret
-});
+function getRedditPosts () {
+    var url = 'https://www.reddit.com/r/DotA2/top.json?sort=top&t=day&limit=' + config.reddit.limit;
 
-db.run('CREATE TABLE IF NOT EXISTS posts (' +
-    'id TEXT PRIMARY KEY NOT NULL,' +
-    'title TEXT NOT NULL,' +
-    'permalink TEXT NOT NULL,' +
-    'added TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,' +
-    'tweeted TIMESTAMP)'
-);
+    request({
+        url: url,
+        json: true,
+        headers: {
+            'User-Agent': config.reddit.user_agent
+        }
+    }, function (err, response, body) {
+        if (err) {
+            console.log(err);
+            return false;
+        }
 
-reddit('r/dota2/top?t=day').listing({limit: config.reddit.limit}).then(function (slice) {
-    slice.children.forEach(function (submission) {
-        db.run('INSERT OR IGNORE INTO posts (id, title, permalink) VALUES ($id, $title, $permalink)', {
-            $id: submission.data.id,
-            $title: submission.data.title,
-            $permalink: submission.data.permalink
-        });
+        if (response.statusCode === 200) {
+            db.run('BEGIN');
+            body.data.children.forEach(function (submission) {
+                db.run('INSERT OR IGNORE INTO posts (id, title, permalink) VALUES ($id, $title, $permalink)', {
+                    $id: submission.data.id,
+                    $title: submission.data.title,
+                    $permalink: submission.data.permalink
+                });
+            });
+            db.run('COMMIT');
+
+            postTwitterSubmissions();
+        }
+    });
+}
+
+function postTwitterSubmissions () {
+    var twitter = new Twit({
+        consumer_key: config.twitter.consumer_key,
+        consumer_secret: config.twitter.consumer_secret,
+        access_token: config.twitter.access_token,
+        access_token_secret: config.twitter.access_token_secret
     });
 
     db.each('SELECT * FROM posts WHERE tweeted IS NULL', function (err, row) {
@@ -76,4 +91,4 @@ reddit('r/dota2/top?t=day').listing({limit: config.reddit.limit}).then(function 
             }
         });
     });
-});
+}
