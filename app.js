@@ -12,6 +12,7 @@ function initDb () {
         'id TEXT PRIMARY KEY NOT NULL,' +
         'title TEXT NOT NULL,' +
         'permalink TEXT NOT NULL,' +
+        'url TEXT NOT NULL,' +
         'added TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,' +
         'tweeted TIMESTAMP)',
         getRedditPosts
@@ -36,10 +37,11 @@ function getRedditPosts () {
         if (response.statusCode === 200) {
             db.run('BEGIN');
             body.data.children.forEach(function (submission) {
-                db.run('INSERT OR IGNORE INTO posts (id, title, permalink) VALUES ($id, $title, $permalink)', {
+                db.run('INSERT OR IGNORE INTO posts (id, title, permalink, url) VALUES ($id, $title, $permalink, $url)', {
                     $id: submission.data.id,
                     $title: submission.data.title,
-                    $permalink: submission.data.permalink
+                    $permalink: submission.data.permalink,
+                    $url: submission.data.url
                 });
             });
             db.run('COMMIT');
@@ -88,6 +90,19 @@ function postTwitterSubmissions () {
             if (err) {
                 console.log(err);
                 return false;
+            }
+
+            var re = /twitter\.com\/.*status\/([0-9]+)/;
+            var match = re.exec(row.url);
+
+            if (match && match[1]) {
+                console.log('[' + now.toUTCString() + '] Retweeting ' + row.url);
+                twitter.post('statuses/retweet/:id', { id: match[1] }, function (err, data, response) {
+                    if (err) {
+                        console.log(err);
+                        return false;
+                    }
+                });
             }
         });
     });
