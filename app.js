@@ -1,10 +1,11 @@
 var config = require('./config.json');
+var path = require('path');
 var request = require('request');
 var Sqlite3 = require('sqlite3').verbose();
 var Twit = require('twit');
 var twitterText = require('twitter-text');
 
-var db = new Sqlite3.Database('./db.sqlite', initDb);
+var db = new Sqlite3.Database(path.join(__dirname, 'db.sqlite'), initDb);
 
 function initDb () {
     db.run(
