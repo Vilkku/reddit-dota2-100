@@ -21,10 +21,8 @@ function initDb () {
 }
 
 function getRedditPosts () {
-    var url = 'https://www.reddit.com/r/DotA2/top.json?sort=top&t=day&limit=' + config.reddit.limit;
-
     request({
-        url: url,
+        url: config.reddit.url,
         json: true,
         headers: {
             'User-Agent': config.reddit.user_agent
@@ -85,7 +83,7 @@ function postTwitterSubmissions () {
             tweet = title + ' https://www.reddit.com' + row.permalink;
         }
 
-        twitter.post('statuses/update', {status: tweet}, function (err, data, response) {
+        return twitter.post('statuses/update', {status: tweet}, function (err, data, response) {
             var now = new Date();
             console.log('[' + now.toUTCString() + '] ' + tweet);
             if (err) {
@@ -98,12 +96,14 @@ function postTwitterSubmissions () {
 
             if (match && match[1]) {
                 console.log('[' + now.toUTCString() + '] Retweeting ' + row.url);
-                twitter.post('statuses/retweet/:id', { id: match[1] }, function (err, data, response) {
+                return twitter.post('statuses/retweet/:id', { id: match[1] }, function (err, data, response) {
                     if (err) {
                         console.log(err);
                         return false;
                     }
                 });
+            } else {
+                return true;
             }
         });
     });

@@ -1,7 +1,7 @@
 {
     "reddit": {
-        "user_agent": "",
-        "limit": 100
+        "user_agent": "<platform>:<app ID>:<version string> (by /u/<reddit username>)",
+        "url": "https://www.reddit.com/r/DotA2/top.json?sort=top&t=day&limit=100"
     },
     "twitter": {
         "consumer_key": "",

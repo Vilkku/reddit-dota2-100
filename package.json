@@ -1,6 +1,6 @@
 {
   "name": "reddit-dota2-100",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Post /r/Dota2 top 100 posts to Twitter",
   "main": "app.js",
   "scripts": {
