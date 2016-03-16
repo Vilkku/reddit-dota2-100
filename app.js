@@ -36,12 +36,14 @@ function getRedditPosts () {
         if (response.statusCode === 200) {
             db.run('BEGIN');
             body.data.children.forEach(function (submission) {
-                db.run('INSERT OR IGNORE INTO posts (id, title, permalink, url) VALUES ($id, $title, $permalink, $url)', {
-                    $id: submission.data.id,
-                    $title: submission.data.title,
-                    $permalink: submission.data.permalink,
-                    $url: submission.data.url
-                });
+                if (config.reddit.min_score && config.reddit.min_score > 10) {
+                    db.run('INSERT OR IGNORE INTO posts (id, title, permalink, url) VALUES ($id, $title, $permalink, $url)', {
+                        $id: submission.data.id,
+                        $title: submission.data.title,
+                        $permalink: submission.data.permalink,
+                        $url: submission.data.url
+                    });
+                }
             });
             db.run('COMMIT');
 
