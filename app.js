@@ -36,7 +36,7 @@ function getRedditPosts () {
         if (response.statusCode === 200) {
             db.run('BEGIN');
             body.data.children.forEach(function (submission) {
-                if (!config.reddit.min_score || (config.reddit.min_score && submission.score > 10)) {
+                if (!config.reddit.min_score || (config.reddit.min_score && submission.data.score > 10)) {
                     db.run('INSERT OR IGNORE INTO posts (id, title, permalink, url) VALUES ($id, $title, $permalink, $url)', {
                         $id: submission.data.id,
                         $title: submission.data.title,
