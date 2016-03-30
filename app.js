@@ -85,28 +85,23 @@ function postTwitterSubmissions () {
             tweet = title + ' https://www.reddit.com' + row.permalink;
         }
 
+        var re = /twitter\.com\/.*status\/([0-9]+)/;
+        var match = re.exec(row.url);
+
+        if (match && match[1]) {
+            tweet = tweet + ' ' + row.url;
+        }
+
         return twitter.post('statuses/update', {status: tweet}, function (err, data, response) {
             var now = new Date();
             console.log('[' + now.toUTCString() + '] ' + tweet);
+
             if (err) {
                 console.log(err);
                 return false;
             }
 
-            var re = /twitter\.com\/.*status\/([0-9]+)/;
-            var match = re.exec(row.url);
-
-            if (match && match[1]) {
-                console.log('[' + now.toUTCString() + '] Retweeting ' + row.url);
-                return twitter.post('statuses/retweet/:id', { id: match[1] }, function (err, data, response) {
-                    if (err) {
-                        console.log(err);
-                        return false;
-                    }
-                });
-            } else {
-                return true;
-            }
+            return true;
         });
     });
 }
