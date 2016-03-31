@@ -126,7 +126,7 @@ function processTwitterSubmissions () {
 function postTwitterSubmission (twitter, params) {
     return twitter.post('statuses/update', params, function (err, data, response) {
         var now = new Date();
-        console.log('[' + now.toUTCString() + '] ' + tweet);
+        console.log('[' + now.toUTCString() + '] ' + params.status);
 
         if (err) {
             console.log(err);
