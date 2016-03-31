@@ -1,3 +1,4 @@
+var base64 = require('node-base64-image');
 var config = require('./config.json');
 var path = require('path');
 var request = require('request');
@@ -33,7 +34,7 @@ function getRedditPosts () {
             return false;
         }
 
-        if (response.statusCode === 200) {
+        if (response.statusCode === 200 && body.data.children.length > 0) {
             db.run('BEGIN');
             body.data.children.forEach(function (submission) {
                 if (!config.reddit.min_score || (config.reddit.min_score && submission.data.score > 10)) {
@@ -47,12 +48,12 @@ function getRedditPosts () {
             });
             db.run('COMMIT');
 
-            postTwitterSubmissions();
+            processTwitterSubmissions();
         }
     });
 }
 
-function postTwitterSubmissions () {
+function processTwitterSubmissions () {
     var twitter = new Twit({
         consumer_key: config.twitter.consumer_key,
         consumer_secret: config.twitter.consumer_secret,
@@ -85,23 +86,53 @@ function postTwitterSubmissions () {
             tweet = title + ' https://www.reddit.com' + row.permalink;
         }
 
-        var re = /twitter\.com\/.*status\/([0-9]+)/;
-        var match = re.exec(row.url);
+        // If the submission is a tweet, append the URL to the end of our tweet. This will result in Twitter quoting the
+        // tweet, which also removes the URL from the tweet itself, and means it won't count towards the character limit
+        var tweet_re = /twitter\.com\/.*status\/([0-9]+)/;
+        var tweet_match = tweet_re.exec(row.url);
 
-        if (match && match[1]) {
+        if (tweet_match && tweet_match[1]) {
             tweet = tweet + ' ' + row.url;
+
+            return postTwitterSubmission(twitter, {status: tweet});
         }
 
-        return twitter.post('statuses/update', {status: tweet}, function (err, data, response) {
-            var now = new Date();
-            console.log('[' + now.toUTCString() + '] ' + tweet);
+        // If the submission is a direct image link we attach it to the tweet directly
+        var img_re = /\.(?:jpe?g|gif|png)$/i;
+        var img_match = img_re.exec(row.url);
 
-            if (err) {
-                console.log(err);
-                return false;
-            }
+        if (img_match && img_match[1]) {
+            return base64.base64encoder(row.url, {string: true}, function (err, image) {
+                if (err) {
+                    console.log(err);
+                    return false;
+                }
 
-            return true;
-        });
+                return twitter.post('media/upload', {media_data: image}, function (err, data, response) {
+                    if (err) {
+                        console.log(err);
+                        return false;
+                    }
+
+                    return postTwitterSubmission(twitter, {status: tweet, media_ids: [data.media_id_string]});
+                });
+            });
+        }
+
+        return postTwitterSubmission(twitter, {status: tweet});
+    });
+}
+
+function postTwitterSubmission (twitter, params) {
+    return twitter.post('statuses/update', params, function (err, data, response) {
+        var now = new Date();
+        console.log('[' + now.toUTCString() + '] ' + tweet);
+
+        if (err) {
+            console.log(err);
+            return false;
+        }
+
+        return true;
     });
 }
