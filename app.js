@@ -35,28 +35,30 @@ function getRedditPosts () {
         }
 
         if (response.statusCode === 200 && body.data.children.length > 0) {
-            db.run('BEGIN');
-            var count = 0;
+            var submissions = [];
+
             body.data.children.forEach(function (submission) {
                 if (!config.reddit.min_score || (config.reddit.min_score && submission.data.score > 10)) {
+                    submissions.push(submission);
+                }
+            });
+
+            if (submissions.length > 0) {
+                db.run('BEGIN');
+
+                submissions.forEach(function (submission) {
                     db.run('INSERT OR IGNORE INTO posts (id, title, permalink, url) VALUES ($id, $title, $permalink, $url)', {
                         $id: submission.data.id,
                         $title: submission.data.title,
                         $permalink: submission.data.permalink,
                         $url: submission.data.url
                     });
+                });
 
-                    count++;
-                }
-            });
-
-            if (count > 0) {
                 db.run('COMMIT');
-            } else {
-                db.run('ROLLBACK');
-            }
 
-            processTwitterSubmissions();
+                processTwitterSubmissions();
+            }
         }
     });
 }
@@ -109,7 +111,7 @@ function processTwitterSubmissions () {
         var img_re = /\.(?:jpe?g|gif|png)$/i;
         var img_match = img_re.exec(row.url);
 
-        if (img_match && img_match[1]) {
+        if (img_match && img_match[0]) {
             console.log('Is image...');
 
             return base64.base64encoder(row.url, {string: true}, function (err, image) {
