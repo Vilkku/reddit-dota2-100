@@ -77,8 +77,6 @@ function processTwitterSubmissions () {
             return false;
         }
 
-        db.run('UPDATE posts SET tweeted = CURRENT_TIMESTAMP WHERE id = $id', {$id: row.id});
-
         var tweet = row.title + ' https://www.reddit.com' + row.permalink;
         var tweetLength = twitterText.getTweetLength(tweet);
 
@@ -129,7 +127,8 @@ function processTwitterSubmissions () {
                     }
 
                     console.log('Uploaded image...');
-                    console.log(response);
+
+                    console.log(tweet);
 
                     return postTwitterSubmission(twitter, {status: tweet, media_ids: [data.media_id_string]});
                 });
@@ -149,6 +148,8 @@ function postTwitterSubmission (twitter, params) {
             console.log(err);
             return false;
         }
+
+        db.run('UPDATE posts SET tweeted = CURRENT_TIMESTAMP WHERE id = $id', {$id: row.id});
 
         return true;
     });
