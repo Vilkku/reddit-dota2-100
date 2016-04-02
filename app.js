@@ -84,7 +84,7 @@ function processTwitterSubmissions () {
             var lengthOver = tweetLength - 140;
 
             // Remove characters that make the tweet too long from the title and remove potential whitespace from the end
-            var title = row.title.slice(0, -(lengthOver + 3)).trim();
+            var title = row.title.slice(0, -(lengthOver + 6)).trim();
             // Remove the last word from the title, it might be cut off in the middle because of the previous operation
             title = title.substring(0, title.lastIndexOf(' '));
             // Add ellipsis to the end of the title
