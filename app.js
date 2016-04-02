@@ -77,6 +77,8 @@ function processTwitterSubmissions () {
             return false;
         }
 
+        db.run('UPDATE posts SET tweeted = CURRENT_TIMESTAMP WHERE id = $id', {$id: row.id});
+
         var tweet = row.title + ' https://www.reddit.com' + row.permalink;
         var tweetLength = twitterText.getTweetLength(tweet);
 
@@ -148,8 +150,6 @@ function postTwitterSubmission (twitter, params) {
             console.log(err);
             return false;
         }
-
-        db.run('UPDATE posts SET tweeted = CURRENT_TIMESTAMP WHERE id = $id', {$id: row.id});
 
         return true;
     });
