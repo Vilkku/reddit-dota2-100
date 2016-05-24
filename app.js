@@ -38,7 +38,7 @@ function getRedditPosts () {
             var submissions = [];
 
             body.data.children.forEach(function (submission) {
-                if (!config.reddit.min_score || (config.reddit.min_score && submission.data.score > 10)) {
+                if (!config.reddit.min_score || (config.reddit.min_score && submission.data.score >= config.reddit.min_score)) {
                     submissions.push(submission);
                 }
             });
